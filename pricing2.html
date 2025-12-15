@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书订阅升级 - 双轨展示版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #F6F8FA;
+            color: #1F2329;
+            overflow-x: hidden;
+        }
+        
+        /* Tab Switch Animation */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* AI Glow Effect - Conditional */
+        .bg-glow-wrapper {
+            position: relative;
+            transition: background 0.5s ease;
+        }
+        .bg-glow-wrapper.ai-mode {
+            background: linear-gradient(180deg, #FFFFFF 0%, #F5F6FF 100%);
+        }
+        .ai-glow {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(51, 112, 255, 0.06) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .bg-glow-wrapper.ai-mode .ai-glow {
+            opacity: 1;
+        }
+        .ai-glow-1 { top: -300px; left: -200px; }
+        .ai-glow-2 { bottom: -200px; right: -200px; background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(255, 255, 255, 0) 70%); }
+
+        /* Card Interactions */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .hover-lift:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px rgba(31, 35, 41, 0.08), 0 4px 12px rgba(31, 35, 41, 0.04);
+            border-color: #3370FF;
+            z-index: 10;
+        }
+        
+        /* Stats Bar */
+        .stats-item { position: relative; }
+        .stats-item:not(:last-child)::after {
+            content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 1px;
+            background-color: #DEE0E3; display: none;
+        }
+        @media (min-width: 1024px) {
+            .stats-item:not(:last-child)::after { display: block; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D0D3D6; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #B8BCC0; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Compact Top Info Bar -->
+    <div class="bg-white border-b border-gray-200 sticky top-0 z-50 bg-opacity-95 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-3 flex flex-col lg:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <span class="font-bold text-gray-900">当前使用概览</span>
+                    <span class="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-500">免费企业版</span>
+                </div>
+                <div class="flex-1 w-full lg:w-auto grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 items-center">
+                    <div class="stats-item px-2 flex flex-col">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span><i class="fas fa-hdd text-blue-500 mr-1"></i>云存储</span>
+                            <span>3%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 3%"></div></div>
+                    </div>
+                    <div class="stats-item px-2 flex flex-col">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span><i class="fas fa-file-alt text-purple-500 mr-1"></i>解析次数</span>
+                            <span class="font-bold text-gray-900">12,875</span>
+                        </div>
+                         <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden"><div class="bg-purple-500 h-1.5 rounded-full w-full opacity-20"></div></div>
+                    </div>
+                    <div class="stats-item px-2 flex flex-col">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span><i class="fas fa-microphone text-orange-500 mr-1"></i>妙记时长</span>
+                            <span>80%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-orange-500 h-1.5 rounded-full" style="width: 80%"></div></div>
+                    </div>
+                    <div class="stats-item px-2 flex flex-col">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span><i class="fas fa-bolt text-cyan-500 mr-1"></i>自动化</span>
+                            <span>10%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5"><div class="bg-cyan-500 h-1.5 rounded-full" style="width: 10%"></div></div>
+                    </div>
+                </div>
+                <a href="#" class="hidden lg:block text-xs text-blue-600 hover:text-blue-700 whitespace-nowrap">详情 ></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Content Wrapper -->
+    <div id="main-wrapper" class="bg-glow-wrapper min-h-screen pb-16">
+        <!-- Background Effects (Visible only in AI mode) -->
+        <div class="ai-glow ai-glow-1"></div>
+        <div class="ai-glow ai-glow-2"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-12">
+            
+            <!-- Header & Switcher -->
+            <div class="text-center mb-10">
+                <h1 class="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight mb-8">
+                    为您的组织选择 <span class="text-blue-600">最佳升级方案</span>
+                </h1>
+
+                <!-- The Toggle Control -->
+                <div class="inline-flex bg-gray-100 p-1 rounded-full relative shadow-inner">
+                    <!-- Background slider (Optional, or just use class switching) -->
+                    <button onclick="switchTab('suite')" id="btn-suite" class="relative z-10 px-8 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm bg-white text-blue-600 ring-1 ring-black/5">
+                        <i class="fas fa-layer-group mr-2"></i>协作套件
+                    </button>
+                    <button onclick="switchTab('ai')" id="btn-ai" class="relative z-10 px-8 py-2.5 rounded-full text-sm font-bold text-gray-500 transition-all duration-300 hover:text-gray-900">
+                        <i class="fas fa-sparkles mr-2 text-purple-500"></i>飞书 AI
+                        <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    </button>
+                </div>
+                <p id="subtitle" class="mt-6 text-gray-500 text-sm h-6 transition-all">包含视频会议、云文档、即时沟通等核心协作能力</p>
+            </div>
+
+            <!-- TAB 1: SUITE PLANS -->
+            <div id="tab-suite" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+                    <!-- Plan 1: Standard -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover-lift flex flex-col relative">
+                        <h3 class="text-lg font-bold text-gray-900">商业标准版</h3>
+                        <div class="mt-4 mb-6">
+                            <span class="text-3xl font-bold text-gray-900">¥50</span>
+                            <span class="text-gray-500 text-sm font-normal">/人/月</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-600 flex-1 mb-6">
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 24 小时视频会议</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 50 方视频会议</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 100 GB 网盘/人</li>
+                        </ul>
+                        <button class="w-full bg-white border border-blue-600 text-blue-600 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors">购买升级</button>
+                    </div>
+
+                    <!-- Plan 2: Pro -->
+                    <div class="bg-white rounded-2xl p-6 shadow-md border-2 border-blue-500 hover-lift flex flex-col relative transform lg:-translate-y-2 z-10">
+                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">推荐版本</div>
+                        <h3 class="text-lg font-bold text-gray-900 text-blue-600">商业专业版</h3>
+                        <div class="mt-4 mb-6">
+                            <span class="text-3xl font-bold text-gray-900">¥80</span>
+                            <span class="text-gray-500 text-sm font-normal">/人/月</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-600 flex-1 mb-6">
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 包含标准版权益</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 300 方视频会议</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 1 TB 网盘/人</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 多维表格高级能力</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-blue-200 shadow-lg">立即升级</button>
+                    </div>
+
+                    <!-- Plan 3: Flagship -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 hover-lift flex flex-col relative">
+                        <h3 class="text-lg font-bold text-gray-900">商业旗舰版</h3>
+                        <div class="mt-4 mb-6">
+                            <span class="text-3xl font-bold text-gray-900">¥120</span>
+                            <span class="text-gray-500 text-sm font-normal">/人/月</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-600 flex-1 mb-6">
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 500 方视频会议</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> 10 TB 网盘/租户</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mt-0.5 mr-2 text-xs"></i> SSO 单点登录</li>
+                        </ul>
+                        <button class="w-full bg-white border border-blue-600 text-blue-600 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-50 transition-colors">购买升级</button>
+                    </div>
+
+                    <!-- Plan 4: Enterprise -->
+                    <div class="bg-gray-50 rounded-2xl p-6 shadow-sm border border-gray-200 hover-lift flex flex-col relative">
+                        <h3 class="text-lg font-bold text-gray-900">企业旗舰版</h3>
+                        <div class="mt-4 mb-6 flex items-center h-[36px]">
+                            <span class="text-gray-900 font-bold text-lg"><i class="fas fa-phone-alt text-xs mr-2 text-gray-400"></i>400-0682-666</span>
+                        </div>
+                        <ul class="space-y-3 text-sm text-gray-600 flex-1 mb-6">
+                            <li class="flex items-start"><i class="fas fa-check-circle text-gray-400 mt-0.5 mr-2 text-xs"></i> 1000 方视频会议</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-gray-400 mt-0.5 mr-2 text-xs"></i> 全链路安全管控</li>
+                            <li class="flex items-start"><i class="fas fa-check-circle text-gray-400 mt-0.5 mr-2 text-xs"></i> 复杂组织架构管理</li>
+                        </ul>
+                        <button class="w-full bg-gray-900 text-white py-2.5 rounded-lg font-medium text-sm hover:bg-gray-800 transition-colors">联系咨询</button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button class="group flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                        <span>展开详细功能对比</span>
+                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 2: AI PLANS -->
+            <div id="tab-ai" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    
+                    <!-- AI Basic -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/60 hover-lift flex flex-col">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-lg font-bold text-gray-900">基础版</h3>
+                            <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full font-bold">月付</span>
+                        </div>
+                        <div class="mb-5">
+                            <span class="text-2xl font-bold text-gray-900">¥ 990</span>
+                            <span class="text-xs text-gray-500"> / 月</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-6 flex-1">包含智能纪要、多维表格 AI、智能体平台 aily、文档 AI 等能力。</p>
+                        <div class="pt-4 border-t border-gray-100 mt-auto">
+                            <p class="text-xs font-bold text-blue-600 mb-2">1.5 万点 AI 额度</p>
+                            <button class="w-full border border-blue-200 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors">立即购买</button>
+                        </div>
+                    </div>
+
+                    <!-- AI Enterprise (Featured) -->
+                    <div class="bg-gradient-to-b from-white to-purple-50 rounded-2xl p-6 border-2 border-purple-400 hover-lift flex flex-col shadow-lg relative overflow-hidden transform lg:-translate-y-2">
+                        <div class="absolute top-0 right-0 bg-purple-600 text-white text-[10px] px-3 py-1 rounded-bl-lg font-bold z-20">企业首选</div>
+                        <div class="flex justify-between items-start mb-3 relative z-10">
+                            <h3 class="text-lg font-bold text-gray-900">企业版</h3>
+                        </div>
+                        <div class="mb-5 relative z-10">
+                            <span class="text-2xl font-bold text-gray-900">¥ 9.9 万</span>
+                            <span class="text-xs text-gray-500"> / 年</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-6 flex-1 relative z-10">在基础版基础上额外支持：知识问答付费权益及部分 AI 服务。</p>
+                        <div class="pt-4 border-t border-purple-100 mt-auto relative z-10">
+                            <p class="text-xs font-bold text-purple-600 mb-2">200 万点 AI 额度</p>
+                            <button class="w-full bg-purple-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors shadow-md">立即购买</button>
+                        </div>
+                    </div>
+
+                    <!-- AI Enterprise Plus -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/60 hover-lift flex flex-col">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-lg font-bold text-gray-900">企业版 Plus</h3>
+                        </div>
+                        <div class="mb-5 flex items-center h-[32px]">
+                            <span class="text-sm font-medium text-gray-700">需咨询报价</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-6 flex-1">额外支持：可搜文档数上限 300 万篇、企业高管模式、aily 高级功能。</p>
+                        <div class="pt-4 border-t border-gray-100 mt-auto">
+                            <p class="text-xs font-bold text-gray-700 mb-2">600 万点 AI 额度</p>
+                            <button class="w-full border border-gray-200 text-gray-700 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors">联系销售</button>
+                        </div>
+                    </div>
+
+                    <!-- AI Flagship -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/60 hover-lift flex flex-col">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-lg font-bold text-gray-900">旗舰版</h3>
+                        </div>
+                        <div class="mb-5 flex items-center h-[32px]">
+                            <span class="text-sm font-medium text-gray-700">需咨询报价</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-6 flex-1">全场景 AI 落地方案。额外支持：知识问答 API、更高级别的服务支持。</p>
+                        <div class="pt-4 border-t border-gray-100 mt-auto">
+                            <p class="text-xs font-bold text-gray-700 mb-2">2000 万点 AI 额度</p>
+                            <button class="w-full border border-gray-200 text-gray-700 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors">联系销售</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Member Banner (Optimized) -->
+                <div class="bg-gradient-to-r from-[#F5F3FF] to-white border border-purple-100 rounded-xl p-1 relative overflow-hidden shadow-sm">
+                    <div class="bg-white/50 backdrop-blur-md rounded-lg p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-purple-200">
+                                <i class="fas fa-crown text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h3 class="text-lg font-bold text-gray-900">飞书 AI 高级会员</h3>
+                                    <span class="bg-orange-100 text-orange-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase">个人/团队</span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    适合轻量级用户，低成本体验 AI 智能纪要与知识问答。
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 md:gap-8 w-full md:w-auto justify-between md:justify-end">
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gray-900">¥ 69 <span class="text-xs font-normal text-gray-500">/人/月</span></div>
+                                <div class="text-xs text-purple-600">1,000 点/月</div>
+                            </div>
+                            <button class="bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors shadow-lg">立即开通</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- More Products -->
+    <div class="bg-white py-16 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-lg font-bold text-gray-900 mb-8 text-center">更多飞书产品与服务</h2>
+            <div class="flex flex-wrap justify-center gap-3 md:gap-6 text-sm text-gray-600">
+                <a href="#" class="px-4 py-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors">飞书项目</a>
+                <a href="#" class="px-4 py-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors">飞书人事</a>
+                <a href="#" class="px-4 py-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors">飞书招聘</a>
+                <a href="#" class="px-4 py-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors">飞书绩效</a>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-gray-100 text-center">
+                <div class="flex justify-center items-center gap-8 opacity-40 grayscale filter">
+                   <i class="fab fa-apple text-2xl"></i>
+                   <i class="fab fa-google text-2xl"></i>
+                   <i class="fab fa-aws text-2xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Get Elements
+            const btnSuite = document.getElementById('btn-suite');
+            const btnAi = document.getElementById('btn-ai');
+            const tabSuite = document.getElementById('tab-suite');
+            const tabAi = document.getElementById('tab-ai');
+            const wrapper = document.getElementById('main-wrapper');
+            const subtitle = document.getElementById('subtitle');
+
+            // Reset Styles
+            const activeClass = ['bg-white', 'text-blue-600', 'shadow-sm', 'ring-1', 'ring-black/5'];
+            const inactiveClass = ['text-gray-500', 'hover:text-gray-900', 'bg-transparent', 'shadow-none', 'ring-0'];
+
+            if (tabId === 'suite') {
+                // Style Buttons
+                btnSuite.classList.add(...activeClass);
+                btnSuite.classList.remove(...inactiveClass);
+                btnAi.classList.remove(...activeClass);
+                btnAi.classList.add(...inactiveClass);
+
+                // Show Content
+                tabSuite.classList.add('active');
+                tabAi.classList.remove('active');
+                
+                // Background & Text
+                wrapper.classList.remove('ai-mode');
+                subtitle.textContent = "包含视频会议、云文档、即时沟通等核心协作能力";
+                
+            } else {
+                // Style Buttons
+                btnAi.classList.add(...activeClass);
+                // Switch active color for AI to purple via inline or specific class if needed, here keeping structure
+                btnAi.classList.remove('text-blue-600');
+                btnAi.classList.add('text-purple-600'); 
+                
+                btnAi.classList.remove(...inactiveClass);
+                btnSuite.classList.remove(...activeClass);
+                btnSuite.classList.add(...inactiveClass);
+
+                // Show Content
+                tabAi.classList.add('active');
+                tabSuite.classList.remove('active');
+
+                // Background & Text
+                wrapper.classList.add('ai-mode');
+                subtitle.textContent = "从智能纪要到全场景业务赋能，为企业注入 AI 生产力";
+            }
+        }
+    </script>
+</body>
+</html>
